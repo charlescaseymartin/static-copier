@@ -46,7 +46,6 @@ def extract_wrx_page_links(wrx_path: str):
             link_key: item_link
         })
 
-    print(f'channel tag: {channel.tag}')
     print(f'base page title: {base_page_title}')
     print(f'base page link: {base_page_link}')
     print(f'items: {items}')
