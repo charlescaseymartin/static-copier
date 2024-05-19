@@ -55,14 +55,15 @@ def get_wrx_pages(wrx_path: str):
     return pages
 
 
-def get_static_pages():
-    pass
+def get_static_pages(pages: list):
+    for page in pages:
+        print(f'page details: {page}')
 
 
 def main():
     wrx_file = parse_arg()
     pages = get_wrx_pages(wrx_file)
-    print(f'pages: {pages}')
+    get_static_pages(pages)
 
 
 if __name__ == '__main__':
