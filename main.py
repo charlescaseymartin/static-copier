@@ -1,14 +1,15 @@
 import os
 import sys
+from pathlib import Path
+import shutil
 import argparse
-# import requests
+import requests
 import xml.etree.ElementTree as ET
 
 prog = 'Wordpress To Static'
 description = 'Given a WRX, this program will create a static copy of it\'s website'
 help = 'An exported WRX .xml file to use for copying'
-# data_path = os.path.join(os.getcwd(), 'data')
-# user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0'
+user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0'
 parser = argparse.ArgumentParser(prog=prog, description=description)
 parser.add_argument('-w', '--wrx', required=False, nargs=1, help=help)
 
@@ -55,9 +56,25 @@ def get_wrx_pages(wrx_path: str):
     return pages
 
 
+def create_website_structure():
+    static_dir = os.path.join(os.getcwd(), 'static')
+    if os.path.exists(static_dir):
+        shutil.rmtree(static_dir)
+
+    Path(f'{static_dir}/assets/css').mkdir(parents=True, exist_ok=True)
+    Path(f'{static_dir}/assets/images').mkdir(parents=True, exist_ok=True)
+    Path(f'{static_dir}/assets/fonts').mkdir(parents=True, exist_ok=True)
+    Path(f'{static_dir}/assets/js').mkdir(parents=True, exist_ok=True)
+
+
 def get_static_pages(pages: list):
+    create_website_structure()
     for page in pages:
-        print(f'page details: {page}')
+        if page['published']:
+            headers = {'User-Agent': user_agent}
+            res = requests.get(page['link'], headers=headers)
+            if res.status_code == 200:
+                print('write html content!')
 
 
 def main():
