@@ -5,13 +5,15 @@ import shutil
 import argparse
 import requests
 import xml.etree.ElementTree as ET
+from bs4 import BeautifulSoup
 
-prog = 'Wordpress To Static'
+prog = 'Wordpress To Static Site'
 description = 'Given a WRX, this program will create a static copy of it\'s website'
 help = 'An exported WRX .xml file to use for copying'
 user_agent = 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0'
 parser = argparse.ArgumentParser(prog=prog, description=description)
 parser.add_argument('-w', '--wrx', required=False, nargs=1, help=help)
+static_dir = os.path.join(os.getcwd(), 'static')
 
 
 def parse_arg():
@@ -24,6 +26,11 @@ def parse_arg():
         sys.exit(1)
 
     return wrx_file
+
+
+def get_page_url_path(url):
+    path = '/'.join(str(url).split('/')[3:])
+    return f'/{path}'
 
 
 def get_wrx_pages(wrx_path: str):
@@ -39,7 +46,8 @@ def get_wrx_pages(wrx_path: str):
     pages.append({
         title_key: base_title,
         published_key: True,
-        link_key: base_link,
+        'url': base_link,
+        'path': get_page_url_path(base_link),
     })
 
     for page in channel.findall('item'):
@@ -50,21 +58,25 @@ def get_wrx_pages(wrx_path: str):
         pages.append({
             title_key: page_title,
             published_key: is_published,
-            link_key: page_link,
+            'url': page_link,
+            'path': get_page_url_path(page_link),
         })
 
     return pages
 
 
+def create_static_dirs(dir: str):
+    Path(f'{static_dir}{dir}').mkdir(parents=True, exist_ok=True)
+
+
 def create_website_structure():
-    static_dir = os.path.join(os.getcwd(), 'static')
     if os.path.exists(static_dir):
         shutil.rmtree(static_dir)
 
-    Path(f'{static_dir}/assets/css').mkdir(parents=True, exist_ok=True)
-    Path(f'{static_dir}/assets/images').mkdir(parents=True, exist_ok=True)
-    Path(f'{static_dir}/assets/fonts').mkdir(parents=True, exist_ok=True)
-    Path(f'{static_dir}/assets/js').mkdir(parents=True, exist_ok=True)
+    create_static_dirs('/assets/css')
+    create_static_dirs('/assets/images')
+    create_static_dirs('/assets/fonts')
+    create_static_dirs('/assets/js')
 
 
 def get_static_pages(pages: list):
@@ -72,9 +84,13 @@ def get_static_pages(pages: list):
     for page in pages:
         if page['published']:
             headers = {'User-Agent': user_agent}
-            res = requests.get(page['link'], headers=headers)
+            res = requests.get(page['url'], headers=headers)
             if res.status_code == 200:
-                print('write html content!')
+                create_static_dirs(page['path'])
+                html_file_path = f'{static_dir}{page['path']}/index.html'
+                with open(html_file_path, 'w') as html_file:
+                    parsed_html = BeautifulSoup(res.text, 'lxml').prettify()
+                    html_file.write(parsed_html)
 
 
 def main():
