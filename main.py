@@ -93,7 +93,13 @@ def get_static_pages(pages: list):
                     html_file.write(parsed_html)
 
 
+def get_static_css_assets():
+    for path, subdir, files in os.walk(static_dir):
+        print(f'path: {path}\nsub directory: {subdir}\nfiles: {files}')
+
+
 if __name__ == '__main__':
     wrx_file = parse_arg()
     pages = get_wrx_pages(wrx_file)
     get_static_pages(pages)
+    get_static_css_assets()
