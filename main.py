@@ -93,11 +93,7 @@ def get_static_pages(pages: list):
                     html_file.write(parsed_html)
 
 
-def main():
+if __name__ == '__main__':
     wrx_file = parse_arg()
     pages = get_wrx_pages(wrx_file)
     get_static_pages(pages)
-
-
-if __name__ == '__main__':
-    main()
