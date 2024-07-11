@@ -79,12 +79,20 @@ def create_website_structure():
     create_static_dirs('/assets/js')
 
 
+def fetch_data(url=''):
+    if len(url) < 1:
+        Exception('Fetch data needs a URL')
+
+    headers = {'User-Agent': user_agent}
+    response = requests.get(url, headers=headers)
+    return response
+
+
 def get_static_pages(pages: list):
     create_website_structure()
     for page in pages:
         if page['published']:
-            headers = {'User-Agent': user_agent}
-            res = requests.get(page['url'], headers=headers)
+            res = fetch_data(page['url'])
             if res.status_code == 200:
                 create_static_dirs(page['path'])
                 html_file_path = f'{static_dir}{page['path']}/index.html'
@@ -94,13 +102,22 @@ def get_static_pages(pages: list):
 
 
 def get_static_page_assets():
+    all_css_links = set()
+    all_font_links = set()
+    all_js_links = set()
+    all_images_links = set()
     for path, subdir, files in os.walk(static_dir):
         if 'assets' not in path:
-            print(f'path: {path}\nsub directory: {subdir}\nfiles: {files}')
-            # get css files
-            # get font files
-            # get js files
-            # get images
+            with open(f'{path}/{files[0]}', 'r') as page:
+                parsed_content = BeautifulSoup(page.read(), 'lxml')
+                # get css file links
+                css_links = parsed_content.find_all(attrs={'rel': 'stylesheet'})
+                all_css_links.update([link['href'] for link in css_links])
+
+                # get font file links
+                # get js file links
+                # get image links
+    print(f'{all_css_links}')
 
 
 if __name__ == '__main__':
