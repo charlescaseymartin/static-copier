@@ -100,6 +100,31 @@ def get_static_pages(pages: list):
                     html_file.write(parsed_html)
 
 
+def fetch_css_files(css_links=[]):
+    if len(css_links) < 1:
+        Exception('Can not fetch css files, no links provided.')
+
+    for link in css_links:
+        filename = '.'.join(link.split('/')[-2:]).split('?')[0]
+        css_save_path = f'{static_dir}/assets/css/{filename}'
+        res = fetch_data(link)
+        if res.status_code == 200:
+            with open(css_save_path, 'w') as css_file:
+                css_file.write(res.text)
+
+
+def fetch_font_files():
+    pass
+
+
+def fetch_js_files():
+    pass
+
+
+def fetch_image_files():
+    pass
+
+
 def get_static_page_assets():
     all_css_links = set()
     all_font_links = set()
@@ -118,13 +143,14 @@ def get_static_page_assets():
                 # get js file links
                 # get image links
 
-    for link in list(all_css_links):
-        filename = '.'.join(link.split('/')[-2:]).split('?')[0]
-        css_save_path = f'{static_dir}/assets/css/{filename}'
-        res = fetch_data(link)
-        if res.status_code == 200:
-            with open(css_save_path, 'w') as css_file:
-                css_file.write(res.text)
+    fetch_css_files(list(all_css_links))
+    fetch_font_files()
+    fetch_js_files()
+    fetch_image_files()
+
+
+def update_static_page_urls():
+    pass
 
 
 if __name__ == '__main__':
