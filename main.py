@@ -82,7 +82,6 @@ def create_website_structure():
 def fetch_data(url=''):
     if len(url) < 1:
         Exception('Fetch data needs a URL')
-
     headers = {'User-Agent': user_agent}
     response = requests.get(url, headers=headers)
     return response
