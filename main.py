@@ -106,6 +106,7 @@ def get_static_page_assets():
     all_font_links = set()
     all_js_links = set()
     all_images_links = set()
+
     for path, subdir, files in os.walk(static_dir):
         if 'assets' not in path:
             with open(f'{path}/{files[0]}', 'r') as page:
@@ -117,7 +118,14 @@ def get_static_page_assets():
                 # get font file links
                 # get js file links
                 # get image links
-    print(f'{all_css_links}')
+
+    for link in list(all_css_links):
+        filename = '.'.join(link.split('/')[-2:]).split('?')[0]
+        css_save_path = f'{static_dir}/assets/css/{filename}'
+        res = fetch_data(link)
+        if res.status_code == 200:
+            with open(css_save_path, 'w') as css_file:
+                css_file.write(res.text)
 
 
 if __name__ == '__main__':
