@@ -6,6 +6,7 @@ import argparse
 import requests
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
+import re
 
 prog = 'Wordpress To Static Site'
 description = 'Given a WRX, this program will create a static copy of it\'s website'
@@ -113,8 +114,17 @@ def fetch_css_files(css_links=[]):
                 css_file.write(res.text)
 
 
-def fetch_font_files():
-    pass
+def fetch_font_files(font_links=[]):
+    if len(font_links) < 1:
+        Exception('Can not fetch font files, no links provided.')
+
+    for link in font_links:
+        filename = ''.join(link.split('/')[-1])
+        font_save_path = f'{static_dir}/assets/fonts/{filename}'
+        res = fetch_data(link)
+        if res.status_code == 200:
+            with open(font_save_path, 'w') as font_file:
+                font_file.write(res.text)
 
 
 def fetch_js_files():
@@ -135,21 +145,37 @@ def get_static_page_assets():
         if 'assets' not in path:
             with open(f'{path}/{files[0]}', 'r') as page:
                 parsed_content = BeautifulSoup(page.read(), 'lxml')
+
                 # get css file links
-                css_links = parsed_content.find_all(attrs={'rel': 'stylesheet'})
+                css_attrs = {'rel': 'stylesheet'}
+                css_links = parsed_content.find_all(attrs=css_attrs)
                 all_css_links.update([link['href'] for link in css_links])
 
                 # get font file links
+                font_attrs = {'id': 'wp-fonts-local'}
+                font_tag = parsed_content.findAll('style', attrs=font_attrs)[0]
+                font_styles = re.findall(r'url\(.*\)\s', font_tag.string)
+                for link in font_styles:
+                    parsed_link = link.replace("url('", '').replace("') ", '')
+                    all_font_links.add(parsed_link)
+
                 # get js file links
+
                 # get image links
 
     fetch_css_files(list(all_css_links))
-    fetch_font_files()
+    fetch_font_files(list(all_font_links))
     fetch_js_files()
     fetch_image_files()
 
 
 def update_static_page_urls():
+    # replace all urls with static versions:
+    # - css linked files
+    # - js linked files
+    # - image links
+    # - font imports
+    # - navigations to other pages
     pass
 
 
@@ -158,3 +184,4 @@ if __name__ == '__main__':
     pages = get_wrx_pages(wrx_file)
     get_static_pages(pages)
     get_static_page_assets()
+    update_static_page_urls()
