@@ -127,12 +127,12 @@ def fetch_font_files(font_links=[]):
                 font_file.write(res.text)
 
 
-def fetch_js_files():
-    pass
+def fetch_js_files(js_links=[]):
+    print(f'{js_links}')
 
 
-def fetch_image_files():
-    pass
+def fetch_image_files(image_links=[]):
+    print(f'{image_links}')
 
 
 def get_static_page_assets():
@@ -153,20 +153,28 @@ def get_static_page_assets():
 
                 # get font file links
                 font_attrs = {'id': 'wp-fonts-local'}
-                font_tag = parsed_content.findAll('style', attrs=font_attrs)[0]
+                font_tag = parsed_content.find_all('style', attrs=font_attrs)[0]
                 font_styles = re.findall(r'url\(.*\)\s', font_tag.string)
                 for link in font_styles:
                     parsed_link = link.replace("url('", '').replace("') ", '')
                     all_font_links.add(parsed_link)
 
                 # get js file links
+                # get script tag src's
+                script_src_tags = parsed_content.find_all('script', attrs={'src': True})
+                [all_js_links.add(tag['src']) for tag in script_src_tags]
+                # get link tag href's
+                link_src_attrs = {'id': '@wordpress/interactivity-js-modulepreload'}
+                link_js_tags = parsed_content.find_all('link', attrs=link_src_attrs)
+                [all_js_links.add(tag['href']) for tag in link_js_tags]
+                # check script content for imports
 
                 # get image links
 
     fetch_css_files(list(all_css_links))
     fetch_font_files(list(all_font_links))
-    fetch_js_files()
-    fetch_image_files()
+    fetch_js_files(list(all_js_links))
+    # fetch_image_files(list(all_images_links))
 
 
 def update_static_page_urls():
