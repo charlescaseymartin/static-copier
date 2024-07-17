@@ -1,5 +1,0 @@
-argparse==1.4.0
-requests==2.31.0
-elementpath==4.4.0
-beautifulsoup4==4.12.3
-lxml==5.2.2
